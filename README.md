@@ -17,7 +17,7 @@ Require tools:
 
 ## Functions and signatures:
 
-     /**
+        /**
          * Will recursively create a directory, and all of the directories to it's path, if needed
          */
         createDir: function (dirPath) {
