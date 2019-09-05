@@ -142,7 +142,6 @@ const self = module.exports = {
         return path.replace(/^.*[\\\/]/, '')
     },
 
-
     /**
      * Will strip the extension from a file
      */
@@ -150,6 +149,12 @@ const self = module.exports = {
         return file.split('.').slice(0, -1).join('.')
     },
 
+    /**
+     * Will join the path of dirs
+     */
+    joinPath: async function (...paths) {
+        return path.join(paths)
+    },
 
     /**
      * Will return the size of a file
