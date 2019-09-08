@@ -17,6 +17,33 @@ const self = module.exports = {
         return path.dirname(filePath);
     },
 
+    //todo: move to file handler
+    /**
+     * Will check if a file is a directory
+     */
+    async isDir(filePath) {
+        try {
+            const stat = await fs.lstat(filePath);
+            return (stat.isDirectory())
+        } catch (err) {
+            console.error(err);
+        }
+    },
+
+    /**
+     * Will return the inner dirs of a current dir
+     */
+    getDirs: function(filePath) {
+        let dirContent = self.getDirContent(filePath)
+        let dirsList = [];
+        for (let i = 0; i < dirContent.length; i++) {
+            if(self.isDir(self.joinPath(filePath, dirContent[i]))) {
+                dirsList.push(dirContent[i])
+            }
+        }
+        return dirsList
+    },
+
     /**
      * Will check if file (or directory) exists
      */
@@ -90,7 +117,7 @@ const self = module.exports = {
         let deleteFolderRecursive = function (path) {
             if (fs.existsSync(path)) {
                 fs.readdirSync(path).forEach(function (file, index) {
-                    var curPath = path + "/" + file;
+                    var curPath = self.joinPath(path, file);
                     if (fs.lstatSync(curPath).isDirectory()) { // recurse
                         deleteFolderRecursive(curPath);
                     } else { // delete file
@@ -138,8 +165,13 @@ const self = module.exports = {
     /**
      * Will return the file name from a given path
      */
-    getFileNameFromPath: function (path) {
-        return path.replace(/^.*[\\\/]/, '')
+    getFileNameFromPath: function (path, withExtension=true) {
+        let fName = path.replace(/^.*[\\\/]/, '');
+        if(!withExtension) {
+            return self.stripExtension(fName)
+        } else {
+            return fName
+        }
     },
 
     /**
@@ -150,10 +182,10 @@ const self = module.exports = {
     },
 
     /**
-     * Will join the path of dirs
+     * Will join the paths of dirs
      */
-    joinPath: async function (...paths) {
-        return path.join(paths)
+    joinPath: function (...paths) {
+        return path.join(...paths)
     },
 
     /**
@@ -221,6 +253,7 @@ const self = module.exports = {
 
         }
         return resLst
-    }
+    },
+
 
 };
