@@ -17,27 +17,28 @@ const self = module.exports = {
         return path.dirname(filePath);
     },
 
-    //todo: move to file handler
     /**
      * Will check if a file is a directory
      */
-    async isDir(filePath) {
-        try {
-            const stat = await fs.lstat(filePath);
-            return (stat.isDirectory())
-        } catch (err) {
-            console.error(err);
-        }
+
+    isDir: function(filePath) {
+        return new Promise(async function (resolve, reject) {
+            fs.lstat(filePath, (err, stats) => {
+                let dir = stats.isDirectory()
+                resolve(dir)
+            });
+        }.bind())
     },
 
     /**
      * Will return the inner dirs of a current dir
      */
-    getDirs: function(filePath) {
+    getDirs: async function(filePath) {
         let dirContent = self.getDirContent(filePath)
         let dirsList = [];
         for (let i = 0; i < dirContent.length; i++) {
-            if(self.isDir(self.joinPath(filePath, dirContent[i]))) {
+            let pathh = self.joinPath(filePath, dirContent[i])
+            if(await self.isDir(pathh)) {
                 dirsList.push(dirContent[i])
             }
         }
@@ -66,6 +67,16 @@ const self = module.exports = {
         }
     },
 
+
+    /**
+     * Will remove a list of files
+     */
+    removeFiles: function (filePaths) {
+        for (let i = 0; i < filePaths.length; i++) {
+            self.removeFile(filePaths[i])
+        }
+    },
+
     /**
      * Will return the content of a directory
      */
@@ -80,19 +91,19 @@ const self = module.exports = {
      * @param recursive -> set to true if you want to look in inner directories as well
      */
     getDirContentFullPaths: function(dirPath, recursive=false) {
-    return new Promise(async function (resolve, reject) {
-        let files = [];
-        if (recursive) {
-            files = await self.findFilesInPath(dirPath)
-        } else {
-            fs.readdirSync(dirPath).forEach(file => {
-                let fullPath = path.join(dirPath, file);
-                files.push(fullPath);
-            });
-        }
-        resolve(files)
-    }.bind())
-},
+        return new Promise(async function (resolve, reject) {
+            let files = [];
+            if (recursive) {
+                files = await self.findFilesInPath(dirPath)
+            } else {
+                fs.readdirSync(dirPath).forEach(file => {
+                    let fullPath = path.join(dirPath, file);
+                    files.push(fullPath);
+                });
+            }
+            resolve(files)
+        }.bind())
+    },
 
 
     /**
@@ -114,33 +125,47 @@ const self = module.exports = {
      * Will remove a directory (and all of it's content)
      */
     removeDir: function (path) {
-        let deleteFolderRecursive = function (path) {
-            if (fs.existsSync(path)) {
-                fs.readdirSync(path).forEach(function (file, index) {
-                    var curPath = self.joinPath(path, file);
-                    if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                        deleteFolderRecursive(curPath);
-                    } else { // delete file
-                        fs.unlinkSync(curPath);
-                    }
-                });
-                fs.rmdirSync(path);
-            }
-        };
-        deleteFolderRecursive(path)
+        return new Promise(async function (resolve, reject) {
+            let deleteFolderRecursive = function (path) {
+                if (fs.existsSync(path)) {
+                    fs.readdirSync(path).forEach(function (file, index) {
+                        var curPath = self.joinPath(path, file);
+                        if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                            console.log("going again!!!")
+                            deleteFolderRecursive(curPath);
+                        } else { // delete file
+                            console.log("unlinking!!!")
+                            fs.unlinkSync(curPath);
+                        }
+                    });
+                    fs.rmdirSync(path);
+                }
+            };
+            deleteFolderRecursive(path)
+            resolve()
+        }.bind())
+
+
     },
 
     /**
      * Will copy a file to a given destination
      */
-    copyFile: function (src, dst) {
-        var parentDir = self.getParentDir(dst);
-        if (!self.isDirExists(parentDir)) {
-            self.createDir(parentDir)
-        }
-        fs.copyFile(src, dst, (err) => {
-            if (err) throw err;
-        });
+    copyFile: async function (src, dst) {
+        return new Promise(async function (resolve, reject) {
+
+            var parentDir = self.getParentDir(dst);
+            if (!self.isDirExists(parentDir)) {
+                self.createDir(parentDir)
+            }
+            fs.copyFile(src, dst, (err) => {
+                if (err){
+                    throw err;
+                }  else {
+                    resolve()
+                }
+            });
+        }.bind());
     },
 
     /**
