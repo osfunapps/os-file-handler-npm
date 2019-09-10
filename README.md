@@ -26,7 +26,7 @@ Require tools:
     /**
      * Will return the path to the parent of a file
      */
-    getParentDir: function (filePath) {
+    getParentDirPath: function (filePath) {
         return path.dirname(filePath);
     }, 
     /**
@@ -110,7 +110,7 @@ Require tools:
      * Will copy a file to a given destination
      */
     copyFile: function (src, dst) {
-        var parentDir = self.getParentDir(dst);
+        var parentDir = self.getParentDirPath(dst);
         if (!self.isDirExists(parentDir)) {
             self.createDir(parentDir)
         }
