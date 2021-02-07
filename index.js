@@ -78,6 +78,14 @@ const self = module.exports = {
     },
 
     /**
+     * Will copy a directory
+     */
+    copyDir: function (src, dst) {
+        const fs = require('fs-extra')
+        fs.copySync(src, dst)
+    },
+
+    /**
      * Will return the content of a directory (only immediate children).
      */
     getDirContent: function (dirPath, ignoreFiles = ['.DS_Store']) {
@@ -162,7 +170,7 @@ const self = module.exports = {
      */
     removeDirs: function (dirList) {
         return new Promise(async function (resolve, reject) {
-            for (let i = 0; i < dirList.length ; i++) {
+            for (let i = 0; i < dirList.length; i++) {
                 await self.removeDir(dirList[i])
             }
             resolve()
@@ -340,6 +348,41 @@ const self = module.exports = {
         }
         return resLst
     },
+
+    /**
+     * Will run a file
+     */
+    runFile: function (filePath) {
+        let platform = '';
+        switch (process.platform) {
+            case 'darwin' :
+                platform = 'open';
+                break
+            case 'win32' :
+                platform = 'start';
+                break;
+            case 'win64' :
+                platform = 'start';
+                break;
+            default :
+                platform = 'xdg-open';
+                break;
+        }
+
+        const sys = require('sys');
+        let exec = require('child_process').exec;
+
+        exec(platform + ' ' + filePath);
+    },
+
+    /**
+     * Will return the relative file path of a file from an absolute path.
+     *
+     * To get the absolute path of a file: __filename
+     */
+    relativeFilePathFromAbsolutePath: function (absolutePath) {
+        return path.relative(process.cwd(), absolutePath)
+    }
 
 
 };
